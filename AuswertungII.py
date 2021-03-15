@@ -63,7 +63,7 @@ r73_s2 = pd.read_csv("Vanelli Brinz 12-03-21/r73_s2,6.dat", sep = "\t", header =
 
 
 
-#_______A________
+#______A________
 #Fit
 T = 313
 def U(I, I_s, n, R):
