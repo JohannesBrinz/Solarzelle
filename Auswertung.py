@@ -66,22 +66,40 @@ r73_s2 = pd.read_csv("Daten/r73_s2,6.dat", sep = "\t", header = 8, \
 #_______A________
 #Fit
 T = 313
-def U(I, I_s, n, R):
-    return ((n*constants.k*T)/constants.e) * np.log((I+I_s)/I_s) + I*R
 
+def U_lin(I, R, x):
+    return I*R + x
 
+params_lin, params_lin_cov = optimize.curve_fit(U_lin, a_si_du["current / A"][800:970],\
+ a_si_du["voltage / V"][800:970])       #Linerarer Fit zur Ermittlung des Serienwiderstands R_s
 
-params, params_cov = optimize.curve_fit(U, a_si_du["current / A"][0:970],\
- a_si_du["voltage / V"][0:970])
+print("Serienwiderstand R_s:    ", params_lin[0] )
+
+R = params_lin[0]
+R = R-0.01          #-0.01 damit der ln nicht negariv wird
+
+def U(I, I_s, n):
+    return ((n*constants.k*T)/constants.e) * np.log((I+I_s)/I_s)    #Funktion für U' = U - RI
+
+params, params_cov = optimize.curve_fit(U, a_si_du["voltage / V"][0:970]-R*a_si_du["current / A"][0:970],\
+ a_si_du["current / A"][0:970]) #Der Fit funktioniert nicht
+
 
 #Plot
-plt.errorbar(a_si_du["voltage / V"][400:970], a_si_du["current / A"][400:970], xerr = 0, yerr = 0,\
+plt.errorbar(a_si_du["voltage / V"][0:970], a_si_du["current / A"][0:970], xerr = 0, yerr = 0,\
             linewidth = 2, color = "green", capsize=3)
-#plt.errorbar(U(np.linspace(-1, 1, 1000), params[0], params[1], params[2]), np.linspace(-1, 1, 1000), \
- #lw=1, fmt = "--", c = "black")
-#plt.errorbar(np.linspace(0, 0.5, 1000), np.linspace((1/2.718),(1/2.718), 1000))
+plt.errorbar(U_lin(np.linspace(0, 1, 1000), params_lin[0], params_lin[1]), np.linspace(0, 1, 1000), \
+ lw=1, fmt = "--", c = "black")
+plt.errorbar(U(np.linspace(0.01, 1, 1000), params[0], params[1]), np.linspace(0.01, 1, 1000), \
+  lw=1, fmt = "--", c = "black")
+
+plt.errorbar(a_si_du["voltage / V"][0:970]-R*a_si_du["current / A"][0:970], a_si_du["current / A"][0:970], xerr = 0, yerr = 0,\
+            linewidth = 2, color = "green", capsize=3)      #Plot U'
+
 plt.title('U-I Kennlinie Si dunkel', fontsize = 15)
-#plt.text( 0, 0,"$L_c = $" + str(round(t_c * 3*10e8, 3)))
+plt.text( 0, 0.8, "$R_S = $" + str(round(params_lin[0], 3)) + "$\Omega$")   #R_s
+plt.text( 0, 0.7, "$n = $" + str(round(params[0], 3)))   #n
+plt.text( 0, 0.6, "$I_S = $" + str(round(params[1], 3)) + "A")   #I_s
 plt.xlabel('U [mV]' , fontsize = 13)
 plt.ylabel('I [mA]', fontsize = 13)
 plt.grid(True)
