@@ -88,6 +88,3 @@ plt.grid(True)
 #plt.legend(['experimental data', "weighted modes", "identical modes"], fontsize = 13)
 plt.savefig('Plots/Dunkel_Si.png', dpi=300)
 plt.clf()
-
-
-print("Hallo")
