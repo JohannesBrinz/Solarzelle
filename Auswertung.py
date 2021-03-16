@@ -105,7 +105,7 @@ plt.text( -0.25, 0.2, "$R_S = $" + str(round(params_lin[0], 3)) + "$\Omega$", fo
 plt.text( -0.25, 0.3, "$n = $" + str(round(params[0], 3)), fontsize = 14)   #n
 plt.text( -0.25, 0.4, "$I_S = $" + str(round(params[1], 3)) + "A", fontsize = 14)   #I_s
 plt.xlabel('U [V]' , fontsize = 13)
-plt.ylabel('I [mA]', fontsize = 13)
+plt.ylabel('I [A]', fontsize = 13)
 plt.grid(True)
 plt.legend(['U-I Kennlinie', "Linearer Fit", "Plot  $U' = U - R_s I$", "logarithmischer Fit"], fontsize = 13)
 plt.savefig('Plots/Dunkel_Si.png', dpi=300)
@@ -114,27 +114,27 @@ plt.clf()
 
 #Plot Kennlinien dunkel
 Ao1 = 0.06
-Ao2 =  2.5
-Aa = 2.6
+Ao2 =  25
+Aa = 26
 
 fig, ax1 = plt.subplots()
 color = 'black'
 ax1.set_xlabel('U [V]' , fontsize = 13)
-ax1.set_ylabel('I [$mA/m^2$]', fontsize = 13, color=color)
+ax1.set_ylabel('I [$mA/cm^2$]', fontsize = 13, color=color)
 ax1.tick_params(axis='y', labelcolor=color)
 ax2 = ax1.twinx()
 color = 'black'
 
-ax2.set_ylabel('I [$mA/m^2$]', fontsize = 13, color=color)  # we already handled the x-label with ax1
+ax2.set_ylabel('I [$A/cm^2$]', fontsize = 13, color=color)  # we already handled the x-label with ax1
 ax2.tick_params(axis='y', labelcolor=color)
 
-ax1.errorbar(a_org_du["voltage / V"], a_org_du["current / A"]*1e2/Ao1, xerr = U_err, yerr = I_err,\
+ax1.errorbar(a_org_du["voltage / V"], a_org_du["current / A"]*1e3/Ao1, xerr = U_err, yerr = I_err,\
             linewidth = 2, color = "blue", capsize=3, label = "Kennlinie organisch 1")
 
-ax1.errorbar(a_org2_du["voltage / V"], a_org2_du["current / A"]*1e2/Ao2, xerr = U_err, yerr = I_err,\
-            linewidth = 2, color = "green", capsize=3, label = "Kennlinie organisch 2")
+ax1.errorbar(a_org2_du["voltage / V"], a_org2_du["current / A"]*1e5/Ao2, xerr = U_err, yerr = I_err,\
+            linewidth = 2, color = "green", capsize=3, label = "Kennlinie organisch 2 multipliziert mit 100")
 
-ax2.errorbar(a_si_du["voltage / V"], a_si_du["current / A"]*1e2/Aa, xerr = U_err, yerr = I_err,\
+ax2.errorbar(a_si_du["voltage / V"], a_si_du["current / A"]/Aa, xerr = U_err, yerr = I_err,\
             linewidth = 2, color = "red", capsize=3)
 
 plt.title('U-I Kennlinien dunkel', fontsize = 15)
@@ -165,8 +165,6 @@ ax1.errorbar(a_org_11mV["voltage / V"], a_org_11mV["current / A"]*1e2/Ao1, xerr 
             linewidth = 2, color = "blue", capsize=3)
 ax2.errorbar(a_org2_11["voltage / V"], a_org2_11["current / A"]*1e2/Ao2, xerr = U_err, yerr = I_err,\
             linewidth = 2, color = "green", capsize=3)
-ax1.errorbar(a_an_11mV["voltage / V"], a_an_11mV["current / A"]*1e2/Ao2, xerr = U_err, yerr = I_err,\
-            linewidth = 2, color = "green", capsize=3)
 
 ax1.legend(['Kennlinie organisch 1'], loc = 2)
 ax2.legend(["Kennlinie organisch 2"], loc = 4)
@@ -185,18 +183,45 @@ plt.clf()
 
 
 #Si Kennlinie hell
-#Plot Fit Bestimmung Si dunkel
-plt.errorbar(a_an_11mV["voltage / V"][0:970], a_an_11mV["current / A"][0:970], xerr = U_err, yerr = I_err,\
-            linewidth = 2, color = "blue", capsize=3)  #Normaler Plot
 
+I2 = a_an_11mV["current / A"][780]
+I1 = a_an_11mV["current / A"][770]
+U1 = a_an_11mV["voltage / V"][770]
+U2 = a_an_11mV["voltage / V"][780]
+
+U_OC = U1 + (U2-U1) * 0.33             #lineare Interpolation U_OC
+j_sc = a_an_11mV["current / A"][570]/Aa
+P = a_an_11mV["voltage / V"]*(-a_an_11mV["current / A"])
+
+#Finde I_MPP
+max = 0
+j = 0
+for i in range(570, 770):
+    if P[i] > max:
+        max = P[i]
+        j = i
+I_MPP = a_an_11mV["current / A"][j]
+U_MPP = a_an_11mV["voltage / V"][j]
+FF = -P[j]/U_OC*j_sc*Aa
+p_ein = 100*11/33.2
+Wirkungsgrad = (P[j]*1e3/Aa)/p_ein            #sollte 0.22 sein S.10
+
+#Plot Si hell
+
+plt.errorbar(a_an_11mV["voltage / V"][530:880], a_an_11mV["current / A"][530:880], xerr = U_err, yerr = I_err,\
+            linewidth = 2, color = "blue", capsize=3)  #Normaler Plot
+plt.errorbar(U_MPP, I_MPP, fmt = "s", color = "black")
 
 plt.title('U-I Kennlinie Si hell', fontsize = 15)
-plt.text( -0.25, 0.2, "$R_S = $" + str(round(params_lin[0], 3)) + "$\Omega$", fontsize = 14)   #R_s
-plt.text( -0.25, 0.3, "$n = $" + str(round(params[0], 3)), fontsize = 14)   #n
-plt.text( -0.25, 0.4, "$I_S = $" + str(round(params[1], 3)) + "A", fontsize = 14)   #I_s
+plt.text( 0.2, 0.35, "$U_{Oc} = $" + str(round(U_OC, 3)) + " V", fontsize = 14)   #U_OC
+plt.text( 0.2, 0.25, "$j_{Sc} = $" + str(round(j_sc*1e3, 3)) + r"$\frac{mA}{cm^2}$", fontsize = 14)   #j_sc
+plt.text( 0.2, 0.15, "$I_{MPP} = $" + str(round(I_MPP, 3)) + " A", fontsize = 14)   #I_s
+plt.text( 0.2, 0.05, "$U_{MPP} = $" + str(round(U_MPP, 3)) + " V", fontsize = 14)
+plt.text( 0.2, -0.05, "$FF = $" + str(round(FF, 3)), fontsize = 14)
+plt.text( 0.2, -0.15, "$\eta = $" + str(round(Wirkungsgrad, 3)), fontsize = 14)
 plt.xlabel('U [V]' , fontsize = 13)
-plt.ylabel('I [mA]', fontsize = 13)
-plt.grid(True)
-plt.legend(['U-I Kennlinie', "Linearer Fit", "Plot  $U' = U - R_s I$", "logarithmischer Fit"], fontsize = 13)
+plt.ylabel('I [A]', fontsize = 13)
+#plt.grid(True)
+plt.legend(['U-I Kennlinie', "MPP"], fontsize = 13)
 plt.savefig('Plots/Hell_Si.png', dpi=300)
 plt.clf()
