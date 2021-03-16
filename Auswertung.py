@@ -65,6 +65,10 @@ r73_s2 = pd.read_csv("Daten/r73_s2,6.dat", sep = "\t", header = 8, \
 
 #_______A________
 #Fit
+
+U_err = 0
+I_err = 0
+
 T = 313
 
 def U_lin(I, R, x):
@@ -76,41 +80,71 @@ params_lin, params_lin_cov = optimize.curve_fit(U_lin, a_si_du["current / A"][80
 print("Serienwiderstand R_s:    ", params_lin[0] )
 
 R = params_lin[0]
-R = R-0.13     #-0.11 damit der ln nicht negariv wird, variation
+R = R-0.13     #-0.13 damit der ln nicht negariv wird, variation
 
 def U(I, n, I_s, x):
     return ((n*constants.k*T)/constants.e) * np.log(I/I_s) + x   #Funktion für U' = U - RI
 
 params, params_cov = optimize.curve_fit(U, a_si_du["current / A"][700:900], a_si_du["voltage / V"][700:900]-R*a_si_du["current / A"][700:900])
 
-#Plot
-'''
-
-plt.errorbar(U(np.linspace(0.01, 0.6, 1000), params[0], params[1]), np.linspace(0.01, 0.6, 1000), \
-  lw=1, fmt = "--", c = "black")     #Fit Log
-
-plt.errorbar(a_si_du["voltage / V"][700:900]-R*a_si_du["current / A"][700:900], a_si_du["current / A"][700:900], xerr = 0, yerr = 0,\
-            linewidth = 2, color = "green", capsize=3)      #Plot U'    '''
-
-plt.errorbar(a_si_du["voltage / V"][0:970], a_si_du["current / A"][0:970], xerr = 0, yerr = 0,\
-            linewidth = 2, color = "green", capsize=3)  #Normaler Plot
+#Plot Fit Bestimmung
+plt.errorbar(a_si_du["voltage / V"][0:970], a_si_du["current / A"][0:970], xerr = U_err, yerr = I_err,\
+            linewidth = 2, color = "blue", capsize=3)  #Normaler Plot
 
 plt.errorbar(U_lin(np.linspace(0, 1, 1000), params_lin[0], params_lin[1]), np.linspace(0, 1, 1000), \
- lw=1, fmt = "--", c = "black")   #Linerarer Fit
+ lw=2, fmt = "--", c = "black")   #Linerarer Fit
 
-plt.errorbar(a_si_du["voltage / V"][700:970]-R*a_si_du["current / A"][700:970], a_si_du["current / A"][700:970], xerr = 0, yerr = 0,\
-            linewidth = 2, color = "green", capsize=3)
+plt.errorbar(a_si_du["voltage / V"][700:970]-R*a_si_du["current / A"][700:970], a_si_du["current / A"][700:970], xerr = U_err, yerr = I_err,\
+            linewidth = 2, color = "green", capsize=3)   #Plot U'
 
 plt.errorbar(U(np.linspace(0, 0.6, 1000), params[0], params[1], params[2]), np.linspace(0, 0.6, 1000), \
-  lw=1, fmt = "--", c = "black")
+  lw=2, fmt = "-.", c = "black")  #Fit Log
 
 plt.title('U-I Kennlinie Si dunkel', fontsize = 15)
-plt.text( 0, 0.8, "$R_S = $" + str(round(params_lin[0], 3)) + "$\Omega$")   #R_s
-plt.text( 0, 0.7, "$n = $" + str(round(params[0], 3)))   #n
-plt.text( 0, 0.6, "$I_S = $" + str(round(params[1], 3)) + "A")   #I_s
-plt.xlabel('U [mV]' , fontsize = 13)
+plt.text( -0.25, 0.2, "$R_S = $" + str(round(params_lin[0], 3)) + "$\Omega$", fontsize = 14)   #R_s
+plt.text( -0.25, 0.3, "$n = $" + str(round(params[0], 3)), fontsize = 14)   #n
+plt.text( -0.25, 0.4, "$I_S = $" + str(round(params[1], 3)) + "A", fontsize = 14)   #I_s
+plt.xlabel('U [V]' , fontsize = 13)
 plt.ylabel('I [mA]', fontsize = 13)
 plt.grid(True)
-#plt.legend(['experimental data', "weighted modes", "identical modes"], fontsize = 13)
+plt.legend(['U-I Kennlinie', "Linearer Fit", "Plot  $U' = U - R_s I$", "logarithmischer Fit"], fontsize = 13)
 plt.savefig('Plots/Dunkel_Si.png', dpi=300)
+plt.clf()
+
+
+#Plot Kennlinien dunkel
+plt.errorbar(a_org_du["voltage / V"], a_org_du["current / A"]*1e3, xerr = U_err, yerr = I_err,\
+            linewidth = 2, color = "blue", capsize=3)
+
+plt.errorbar(a_org2_du["voltage / V"], a_org2_du["current / A"]*1e3, xerr = U_err, yerr = I_err,\
+            linewidth = 2, color = "green", capsize=3)
+
+plt.title('U-I Kennlinien dunkel', fontsize = 15)
+plt.text( -0.25, 0.2, "$R_S = $" + str(round(params_lin[0], 3)) + "$\Omega$", fontsize = 14)   #R_s
+plt.text( -0.25, 0.3, "$n = $" + str(round(params[0], 3)), fontsize = 14)   #n
+plt.text( -0.25, 0.4, "$I_S = $" + str(round(params[1], 3)) + "A", fontsize = 14)   #I_s
+plt.xlabel('U [V]' , fontsize = 13)
+plt.ylabel('I [$muA$]', fontsize = 13)
+plt.grid(True)
+plt.legend(['U-I Kennlinie', "Linearer Fit", "Plot  $U' = U - R_s I$", "logarithmischer Fit"], fontsize = 13)
+plt.savefig('Plots/Kennlinie_Dunkel.png', dpi=300)
+plt.clf()
+
+
+#Kennlinie hell
+plt.errorbar(a_org_11mV["voltage / V"], a_org_11mV["current / A"]*1e3, xerr = U_err, yerr = I_err,\
+            linewidth = 2, color = "blue", capsize=3)
+
+plt.errorbar(a_org2_11["voltage / V"], a_org2_11["current / A"]*1e3, xerr = U_err, yerr = I_err,\
+            linewidth = 2, color = "green", capsize=3)
+
+plt.title('U-I Kennlinien hell', fontsize = 15)
+plt.text( -0.25, 0.2, "$R_S = $" + str(round(params_lin[0], 3)) + "$\Omega$", fontsize = 14)   #R_s
+plt.text( -0.25, 0.3, "$n = $" + str(round(params[0], 3)), fontsize = 14)   #n
+plt.text( -0.25, 0.4, "$I_S = $" + str(round(params[1], 3)) + "A", fontsize = 14)   #I_s
+plt.xlabel('U [V]' , fontsize = 13)
+plt.ylabel('I [$mu A$]', fontsize = 13)
+plt.grid(True)
+plt.legend(['U-I Kennlinie', "Linearer Fit", "Plot  $U' = U - R_s I$", "logarithmischer Fit"], fontsize = 13)
+plt.savefig('Plots/Kennlinie_Hell.png', dpi=300)
 plt.clf()
