@@ -76,25 +76,33 @@ params_lin, params_lin_cov = optimize.curve_fit(U_lin, a_si_du["current / A"][80
 print("Serienwiderstand R_s:    ", params_lin[0] )
 
 R = params_lin[0]
-R = R-0.01          #-0.01 damit der ln nicht negariv wird
+R = R-0.13     #-0.11 damit der ln nicht negariv wird, variation
 
-def U(I, I_s, n):
-    return ((n*constants.k*T)/constants.e) * np.log((I+I_s)/I_s)    #Funktion für U' = U - RI
+def U(I, n, I_s, x):
+    return ((n*constants.k*T)/constants.e) * np.log(I/I_s) + x   #Funktion für U' = U - RI
 
-params, params_cov = optimize.curve_fit(U, a_si_du["voltage / V"][0:970]-R*a_si_du["current / A"][0:970],\
- a_si_du["current / A"][0:970]) #Der Fit funktioniert nicht
-
+params, params_cov = optimize.curve_fit(U, a_si_du["current / A"][700:900], a_si_du["voltage / V"][700:900]-R*a_si_du["current / A"][700:900])
 
 #Plot
-plt.errorbar(a_si_du["voltage / V"][0:970], a_si_du["current / A"][0:970], xerr = 0, yerr = 0,\
-            linewidth = 2, color = "green", capsize=3)
-plt.errorbar(U_lin(np.linspace(0, 1, 1000), params_lin[0], params_lin[1]), np.linspace(0, 1, 1000), \
- lw=1, fmt = "--", c = "black")
-plt.errorbar(U(np.linspace(0.01, 1, 1000), params[0], params[1]), np.linspace(0.01, 1, 1000), \
-  lw=1, fmt = "--", c = "black")
+'''
 
-plt.errorbar(a_si_du["voltage / V"][0:970]-R*a_si_du["current / A"][0:970], a_si_du["current / A"][0:970], xerr = 0, yerr = 0,\
-            linewidth = 2, color = "green", capsize=3)      #Plot U'
+plt.errorbar(U(np.linspace(0.01, 0.6, 1000), params[0], params[1]), np.linspace(0.01, 0.6, 1000), \
+  lw=1, fmt = "--", c = "black")     #Fit Log
+
+plt.errorbar(a_si_du["voltage / V"][700:900]-R*a_si_du["current / A"][700:900], a_si_du["current / A"][700:900], xerr = 0, yerr = 0,\
+            linewidth = 2, color = "green", capsize=3)      #Plot U'    '''
+
+plt.errorbar(a_si_du["voltage / V"][0:970], a_si_du["current / A"][0:970], xerr = 0, yerr = 0,\
+            linewidth = 2, color = "green", capsize=3)  #Normaler Plot
+
+plt.errorbar(U_lin(np.linspace(0, 1, 1000), params_lin[0], params_lin[1]), np.linspace(0, 1, 1000), \
+ lw=1, fmt = "--", c = "black")   #Linerarer Fit
+
+plt.errorbar(a_si_du["voltage / V"][700:970]-R*a_si_du["current / A"][700:970], a_si_du["current / A"][700:970], xerr = 0, yerr = 0,\
+            linewidth = 2, color = "green", capsize=3)
+
+plt.errorbar(U(np.linspace(0, 0.6, 1000), params[0], params[1], params[2]), np.linspace(0, 0.6, 1000), \
+  lw=1, fmt = "--", c = "black")
 
 plt.title('U-I Kennlinie Si dunkel', fontsize = 15)
 plt.text( 0, 0.8, "$R_S = $" + str(round(params_lin[0], 3)) + "$\Omega$")   #R_s
