@@ -1,7 +1,7 @@
 ''' Versuch Solarzelle
  Johannes Brinz & Caterina Vanelli
  Datum: 12.03.2021
- '''
+'''
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -225,3 +225,105 @@ plt.ylabel('I [A]', fontsize = 13)
 plt.legend(['U-I Kennlinie', "MPP"], fontsize = 13)
 plt.savefig('Plots/Hell_Si.png', dpi=300)
 plt.clf()
+
+
+#_______B____________
+
+
+#Si Kennlinie hell
+I2_5 = b_5["current / A"][760]
+I1_5 = b_5["current / A"][759]
+U1_5 = b_5["voltage / V"][759]
+U2_5 = b_5["voltage / V"][760]
+I2_20 = b_20["current / A"][770]
+I1_20 = b_20["current / A"][769]
+U1_20 = b_20["voltage / V"][769]
+U2_20 = b_20["voltage / V"][770]
+I2_32 = b_sonne["current / A"][760]
+I1_32 = b_sonne["current / A"][759]
+U1_32 = b_sonne["voltage / V"][759]
+U2_32 = b_sonne["voltage / V"][760]
+
+
+U_OC_5 = U1_5 + (U2_5-U1_5) * 0.33
+j_sc_5 = b_5["current / A"][570]/Aa
+U_OC_20 = U1_20 + (U2_20-U1_20) * 0.33
+j_sc_20 = b_20["current / A"][570]/Aa
+U_OC_32 = U1_32 + (U2_32-U1_32) * 0.33
+j_sc_32 = b_sonne["current / A"][570]/Aa
+
+
+#Plot Si Intensitäten
+plt.errorbar(b_5["voltage / V"][530:900], b_5["current / A"][530:900], xerr = U_err, yerr = I_err,\
+            linewidth = 2, capsize=3) #5 mV
+plt.errorbar(a_an_11mV["voltage / V"][530:900], a_an_11mV["current / A"][530:900], xerr = U_err, yerr = I_err,\
+            linewidth = 2, capsize=3)  #0.3 Sonnen
+plt.errorbar(b_20["voltage / V"][530:900], b_20["current / A"][530:900], xerr = U_err, yerr = I_err,\
+            linewidth = 2, capsize=3) #0.6 Sonnen
+plt.errorbar(b_sonne["voltage / V"][530:900], b_sonne["current / A"][530:900], xerr = U_err, yerr = I_err,\
+            linewidth = 2, capsize=3) #Sonne
+
+plt.title('U-I Kennlinie Si hell', fontsize = 15)
+'''plt.text( 0.5, -0.2, "$U_{Oc,5mV} = $" + str(round(U_OC_5, 3)) + " V", fontsize = 12)   #U_OC
+plt.text( 0.5, -0.3, "$j_{Sc,5mV} = $" + str(round(j_sc_5*1e3, 3)) + r"$\frac{mA}{cm^2}$", fontsize = 12)   #j_sc
+plt.text( 0.5, -0.4, "$U_{Oc, 11mV} = $" + str(round(U_OC, 3)) + " V", fontsize = 12)   #U_OC
+plt.text( 0.5, -0.5, "$j_{Sc, 11mV} = $" + str(round(j_sc*1e3, 3)) + r"$\frac{mA}{cm^2}$", fontsize = 12)   #j_sc
+plt.text( 0.5, -0.6, "$U_{Oc, 20mV} = $" + str(round(U_OC_20, 3)) + " V", fontsize = 12)   #U_OC
+plt.text( 0.5, -0.7, "$j_{Sc, 20mV} = $" + str(round(j_sc_20*1e3, 3)) + r"$\frac{mA}{cm^2}$", fontsize = 12)   #j_sc
+plt.text( 0.5, -0.8, "$U_{Oc, 32mV} = $" + str(round(U_OC_32, 3)) + " V", fontsize = 12)   #U_OC
+plt.text( 0.5, -0.9, "$j_{Sc, 32mV} = $" + str(round(j_sc_32*1e3, 3)) + r"$\frac{mA}{cm^2}$", fontsize = 12) '''  #j_sc
+
+plt.xlabel('U [V]' , fontsize = 13)
+plt.ylabel('I [A]', fontsize = 13)
+plt.grid(True)
+plt.legend(['$U_{Oc,5mV} = $' + str(round(U_OC_5, 2)) + ' V,  ' + "$j_{Sc,5mV} = $" + str(round(j_sc_5*1e3, 2)) + r"$\frac{mA}{cm^2}$",\
+ '$U_{Oc,11mV} = $' + str(round(U_OC, 2)) + ' V,  ' + "$j_{Sc,11mV} = $" + str(round(j_sc*1e3, 2)) + r"$\frac{mA}{cm^2}$",\
+ '$U_{Oc,20mV} = $' + str(round(U_OC_20, 2)) + ' V,  ' + "$j_{Sc,20mV} = $" + str(round(j_sc_20*1e3, 2)) + r"$\frac{mA}{cm^2}$",\
+  '$U_{Oc,32mV} = $' + str(round(U_OC_32, 2)) + ' V,  ' + "$j_{Sc,32mV} = $" + str(round(j_sc_32*1e3, 2)) + r"$\frac{mA}{cm^2}$"], fontsize = 12)
+plt.savefig('Plots/Intensitäten.png', dpi=300)
+plt.clf()
+
+# Kurzschlussstrom über Intensität
+#linearer Fit
+def lin(x, m, a, b):
+    return m*(x-a) + b
+
+j_SC = pd.DataFrame()
+j_SC["j_SC"] = [j_sc_5, j_sc, j_sc_20, j_sc_32]
+j_SC["i"] = [500/32, 1100/32, 2000/32, 100]
+
+params, params_cov = optimize.curve_fit(lin, j_SC["i"], j_SC["j_SC"])
+
+#Plot
+plt.title("Intensity Dependence of $j_{sc}$", fontsize = 18)
+
+plt.errorbar(np.linspace(15, 100, 1000), lin(np.linspace(15, 100, 1000), params[0], params[1], params[2]), color = "black")
+plt.errorbar(j_SC["i"], j_SC["j_SC"], fmt = "d", linewidth = 2, capsize=3, markersize='14', color = "blue")
+
+'''plt.errorbar(500/32, j_sc_5, fmt = "s", markersize='16')
+plt.errorbar(1100/32, j_sc, fmt = "d", markersize='16')
+plt.errorbar(2000/32, j_sc_20, fmt = "x", markersize='16')
+plt.errorbar(100, j_sc_32, fmt = ".", markersize='16')'''
+
+plt.xlabel(r'$I_0 [\frac{mW}{cm^2}]$' , fontsize = 14)
+plt.ylabel(r'j [$\frac{A}{cm^2}]$', fontsize = 14)
+plt.legend(["linear fit", "data"])
+plt.grid(True)
+plt.savefig('Plots/j_Intensität.png', dpi=300)
+plt.clf()
+
+# U_Oc über Intensität
+plt.title("Intensity Dependence of $U_{OC}$", fontsize = 18)
+
+plt.errorbar(500/32, U_OC_5, fmt = "s", markersize='16')
+plt.errorbar(1100/32, U_OC, fmt = "d", markersize='16')
+plt.errorbar(2000/32, U_OC_20, fmt = "x", markersize='16')
+plt.errorbar(3200/32, U_OC_32, fmt = ".", markersize='16')
+
+plt.xlabel(r'$I_0 [\frac{mW}{cm^2}]$' , fontsize = 14)
+plt.ylabel(r'$U_{OC} [V]$', fontsize = 14)
+
+plt.savefig('Plots/U_Intensität.png', dpi=300)
+plt.clf()
+
+#_______________C_______________
