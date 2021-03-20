@@ -211,6 +211,8 @@ plt.errorbar(a_an_11mV["voltage / V"][530:880], a_an_11mV["current / A"][530:880
             linewidth = 2, color = "blue", capsize=3)  #Normaler Plot
 plt.errorbar(U_MPP, I_MPP, fmt = "s", color = "black")
 
+plt.errorbar(np.linspace(0, 0.8, 1000), np.linspace(0, 0, 1000), color = "black", linewidth = "1")
+
 plt.title('U-I Kennlinie Si hell', fontsize = 15)
 plt.text( 0.2, 0.35, "$U_{Oc} = $" + str(round(U_OC, 3)) + " V", fontsize = 14)   #U_OC
 plt.text( 0.2, 0.25, "$j_{Sc} = $" + str(round(j_sc*1e3, 3)) + r"$\frac{mA}{cm^2}$", fontsize = 14)   #j_sc
@@ -220,7 +222,8 @@ plt.text( 0.2, -0.05, "$FF = $" + str(round(FF, 3)), fontsize = 14)
 plt.text( 0.2, -0.15, "$\eta = $" + str(round(Wirkungsgrad, 3)), fontsize = 14)
 plt.xlabel('U [V]' , fontsize = 13)
 plt.ylabel('I [A]', fontsize = 13)
-#plt.grid(True)
+plt.xlim(xmin=0, xmax = 0.8)
+plt.grid(b = True, which = "major", axis = "y")
 plt.legend(['U-I Kennlinie', "MPP"], fontsize = 13)
 plt.savefig('Plots/Hell_Si.png', dpi=300)
 plt.clf()
