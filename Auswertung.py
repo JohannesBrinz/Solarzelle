@@ -16,7 +16,7 @@ from scipy.stats import norm
 
 
 #Datenimport
-Kippunng = pd.read_csv("Daten/Kippung.dat", sep = "\t\t", header = 0, \
+Kippung = pd.read_csv("Daten/Kippung.dat", sep = "\t\t", header = 0, \
     names = ["Winkel[rad]", "I_K,o[yA]", "I_K,ano[mA]"], engine='python')    #40 < T [C] < 46
 Leerlaufspannung = pd.read_csv("Daten/Leerlaufspannungen.dat", sep = "\t", header = 0, \
     names = ["T[C]", "U_L[mV]"])
@@ -327,3 +327,64 @@ plt.savefig('Plots/U_Intensität.png', dpi=300)
 plt.clf()
 
 #_______________C_______________
+
+#_______________D________________
+T_err = 2
+U_L_err = 0
+
+params, params_cov = optimize.curve_fit(lin, Leerlaufspannung["T[C]"][0:5], Leerlaufspannung["U_L[mV]"][0:5])
+
+plt.title("Temperature Dependence of $U_{OC}$", fontsize = 18)
+
+plt.errorbar(np.linspace(27, 55, 1000), lin(np.linspace(27, 55, 1000), params[0], params[1], params[2]), color = "black")
+plt.errorbar(Leerlaufspannung["T[C]"], Leerlaufspannung["U_L[mV]"], xerr=T_err, yerr=U_L_err,\
+fmt = "x", linewidth = 2, capsize=3, markersize='12', color = "blue")
+plt.xlabel('T[K]' , fontsize = 14)
+plt.ylabel('$U_{OC}$[mV]', fontsize = 14)
+plt.legend(["linear fit", "data"])
+plt.grid(True)
+plt.savefig('Plots/Temperatur.png', dpi=300)
+plt.clf()
+
+
+#___________E____________
+#fit
+def cos(x, a, b):
+    return b*np.cos(a*x)
+
+params_ao, params_cov_ao = optimize.curve_fit(cos, Kippung["Winkel[rad]"], Kippung["I_K,ano[mA]"], p0 = [0.01, 65])
+params_o, params_cov_o = optimize.curve_fit(cos, Kippung["Winkel[rad]"], Kippung["I_K,o[yA]"], p0 = [0.01, 65])
+
+
+theta_err = 3
+
+fig, ax1 = plt.subplots()
+color = 'black'
+ax1.set_xlabel('$\Theta [°]$' , fontsize = 13)
+ax1.set_ylabel('I [$mA$]', fontsize = 13, color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+ax2 = ax1.twinx()
+color = 'black'
+ax2.set_ylabel(r'$I [\mu A$]', fontsize = 13, color=color)  # we already handled the x-label with ax1
+ax2.tick_params(axis='y', labelcolor=color)
+
+ax1.errorbar(Kippung["Winkel[rad]"], Kippung["I_K,ano[mA]"], xerr = theta_err, yerr = I_err,\
+            linewidth = 2, color = "blue", capsize=3, fmt = "x")
+ax1.errorbar(np.linspace(0, 90, 1000), cos(np.linspace(0, 90, 1000), params_ao[0], params_ao[1]), color = "black")
+ax2.errorbar(Kippung["Winkel[rad]"], Kippung["I_K,o[yA]"], xerr = theta_err, yerr = I_err,\
+            linewidth = 2, color = "green", capsize=3, fmt = "x")
+ax2.errorbar(np.linspace(0, 90, 1000), cos(np.linspace(0, 90, 1000), params_o[0], params_o[1]))
+
+ax1.legend(['data non-organic'], loc = 2)
+ax2.legend(["data organic"], loc = 1)
+
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
+plt.subplots_adjust(top=0.85)
+
+plt.title('Angel Dependence of $I_sc$', fontsize = 15)
+
+
+plt.grid(True)
+#plt.legend(['U-I Kennlinie', "Linearer Fit", "Plot  $U' = U - R_s I$", "logarithmischer Fit"], fontsize = 13)
+plt.savefig('Plots/Kippung.png', dpi=300)
+plt.clf()
