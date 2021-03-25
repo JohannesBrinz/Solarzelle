@@ -65,8 +65,8 @@ r73_s2 = pd.read_csv("Daten/r73_s2,6.dat", sep = "\t", header = 8, \
 #_______A________
 #Fit
 
-U_err = 0
-I_err = 0    #Temperaturabhngig!!!!
+U_err = 0.01
+I_err = 0.01    #Temperaturabhngig!!!!
 
 T = 313
 
@@ -85,24 +85,27 @@ def U(I, n, I_s, x):
     return ((n*constants.k*T)/constants.e) * np.log(I/I_s) + x   #Funktion für U' = U - RI
 
 params, params_cov = optimize.curve_fit(U, a_si_du["current / A"][700:900], a_si_du["voltage / V"][700:900]-R*a_si_du["current / A"][700:900])
+err = np.sqrt(np.diag(params_cov))
+
+print("Fehler n:    ", err[0], "Fehler I_S:", err[1])
 
 #Plot Fit Bestimmung Si dunkel
 plt.errorbar(a_si_du["voltage / V"][0:970], a_si_du["current / A"][0:970], xerr = U_err, yerr = I_err,\
-            linewidth = 2, color = "blue", capsize=3)  #Normaler Plot
+            linewidth = 0.5, color = "blue", capsize=3)  #Normaler Plot
 
 plt.errorbar(U_lin(np.linspace(0, 1, 1000), params_lin[0], params_lin[1]), np.linspace(0, 1, 1000), \
- lw=2, fmt = "--", c = "black")   #Linerarer Fit
+ lw=1, fmt = "--", c = "black")   #Linerarer Fit
 
 plt.errorbar(a_si_du["voltage / V"][700:970]-R*a_si_du["current / A"][700:970], a_si_du["current / A"][700:970], xerr = U_err, yerr = I_err,\
-            linewidth = 2, color = "green", capsize=3)   #Plot U'
+            linewidth = 0.5, color = "green", capsize=3)   #Plot U'
 
 plt.errorbar(U(np.linspace(0, 0.6, 1000), params[0], params[1], params[2]), np.linspace(0, 0.6, 1000), \
-  lw=2, fmt = "-.", c = "black")  #Fit Log
+  lw=1, fmt = "-.", c = "black")  #Fit Log
 
 plt.title('U-I characteristics Si dark', fontsize = 15)
 plt.text( -0.25, 0.2, "$R_S = $" + str(round(params_lin[0], 3)) + "$\Omega$", fontsize = 14)   #R_s
 plt.text( -0.25, 0.3, "$n = $" + str(round(params[0], 3)), fontsize = 14)   #n
-plt.text( -0.25, 0.4, "$I_S = $" + str(round(params[1], 3)) + "A", fontsize = 14)   #I_s
+plt.text( -0.25, 0.4, "$I_S = $" + str(round(params[1], 2)) + "A", fontsize = 14)   #I_s
 plt.xlabel('U [V]' , fontsize = 13)
 plt.ylabel('I [A]', fontsize = 13)
 plt.grid(True)
@@ -127,14 +130,14 @@ color = 'black'
 ax2.set_ylabel('I [$A/cm^2$]', fontsize = 13, color=color)  # we already handled the x-label with ax1
 ax2.tick_params(axis='y', labelcolor=color)
 
-ax1.errorbar(a_org_du["voltage / V"], a_org_du["current / A"]*1e3/Ao1, xerr = U_err, yerr = I_err,\
-            linewidth = 2, color = "blue", capsize=3, label = "Characteristics organic 1")
+ax1.errorbar(a_org_du["voltage / V"], a_org_du["current / A"]*1e3/Ao1, xerr = U_err, yerr = I_err/(Ao1*100),\
+            linewidth = 0.5, color = "blue", capsize=3, label = "Characteristics organic 1")
 
-ax1.errorbar(a_org2_du["voltage / V"], a_org2_du["current / A"]*1e5/Ao2, xerr = U_err, yerr = I_err,\
-            linewidth = 2, color = "green", capsize=3, label = "Characteristics organic 2 x 100")
+ax1.errorbar(a_org2_du["voltage / V"], a_org2_du["current / A"]*1e5/Ao2, xerr = U_err, yerr = I_err/Ao2,\
+            linewidth = 0.5, color = "green", capsize=3, label = "Characteristics organic 2 x 100")
 
-ax2.errorbar(a_si_du["voltage / V"], a_si_du["current / A"]/Aa, xerr = U_err, yerr = I_err,\
-            linewidth = 2, color = "red", capsize=3)
+ax2.errorbar(a_si_du["voltage / V"], a_si_du["current / A"]/Aa, xerr = U_err, yerr = I_err/Aa,\
+            linewidth = 0.5, color = "red", capsize=3)
 
 plt.title('U-I characteristics dark', fontsize = 15)
 
@@ -160,10 +163,10 @@ color = 'black'
 ax2.set_ylabel('I [$mA/m^2$]', fontsize = 13, color=color)  # we already handled the x-label with ax1
 ax2.tick_params(axis='y', labelcolor=color)
 
-ax1.errorbar(a_org_11mV["voltage / V"], a_org_11mV["current / A"]*1e2/Ao1, xerr = U_err, yerr = I_err,\
-            linewidth = 2, color = "blue", capsize=3)
-ax2.errorbar(a_org2_11["voltage / V"], a_org2_11["current / A"]*1e2/Ao2, xerr = U_err, yerr = I_err,\
-            linewidth = 2, color = "green", capsize=3)
+ax1.errorbar(a_org_11mV["voltage / V"], a_org_11mV["current / A"]*1e2/Ao1, xerr = U_err, yerr = I_err/(Ao1*100),\
+            linewidth = 0.5, color = "blue", capsize=3)
+ax2.errorbar(a_org2_11["voltage / V"], a_org2_11["current / A"]*1e2/Ao2, xerr = U_err, yerr = I_err/(Ao2*100),\
+            linewidth = 0.5, color = "green", capsize=3)
 
 ax1.legend(['Characteristics organic 1'], loc = 2)
 ax2.legend(["Characteristics organic 2"], loc = 4)
@@ -208,7 +211,7 @@ Wirkungsgrad = (P[j]*1e3/Aa)/p_ein            #sollte 0.22 sein S.10
 #Plot Si hell
 
 plt.errorbar(a_an_11mV["voltage / V"][530:880], a_an_11mV["current / A"][530:880], xerr = U_err, yerr = I_err,\
-            linewidth = 2, color = "blue", capsize=3)  #Normaler Plot
+            linewidth = 0.5, color = "blue", capsize=3)  #Normaler Plot
 plt.errorbar(U_MPP, I_MPP, fmt = "s", color = "black")
 
 plt.errorbar(np.linspace(0, 0.8, 1000), np.linspace(0, 0, 1000), color = "black", linewidth = "1")
@@ -288,13 +291,13 @@ U_MPP_32 = b_sonne["voltage / V"][j]
 
 #Plot Si Intensitäten
 plt.errorbar(b_5["voltage / V"][530:900], b_5["current / A"][530:900], xerr = U_err, yerr = I_err,\
-            linewidth = 2, capsize=3) #5 mV
+            linewidth = 0.5, capsize=3) #5 mV
 plt.errorbar(a_an_11mV["voltage / V"][530:900], a_an_11mV["current / A"][530:900], xerr = U_err, yerr = I_err,\
-            linewidth = 2, capsize=3)  #0.3 Sonnen
+            linewidth = 0.5, capsize=3)  #0.3 Sonnen
 plt.errorbar(b_20["voltage / V"][530:900], b_20["current / A"][530:900], xerr = U_err, yerr = I_err,\
-            linewidth = 2, capsize=3) #0.6 Sonnen
+            linewidth = 0.5, capsize=3) #0.6 Sonnen
 plt.errorbar(b_sonne["voltage / V"][530:900], b_sonne["current / A"][530:900], xerr = U_err, yerr = I_err,\
-            linewidth = 2, capsize=3) #Sonne
+            linewidth = 0.5, capsize=3) #Sonne
 plt.errorbar(U_MPP_5, I_MPP_5, fmt = "d", color = "black")
 plt.errorbar(U_MPP, I_MPP, fmt = "d", color = "black")
 plt.errorbar(U_MPP_20, I_MPP_20, fmt = "d", color = "black")
@@ -335,7 +338,7 @@ params, params_cov = optimize.curve_fit(lin, j_SC["i"], j_SC["j_SC"])
 plt.title("Intensity dependence of $j_{sc}$", fontsize = 18)
 
 plt.errorbar(np.linspace(15, 100, 1000), lin(np.linspace(15, 100, 1000), params[0], params[1], params[2]), color = "black")
-plt.errorbar(j_SC["i"], j_SC["j_SC"], fmt = "d", linewidth = 2, capsize=3, markersize='14', color = "blue")
+plt.errorbar(j_SC["i"], j_SC["j_SC"], fmt = "d", linewidth = 0.5, capsize=3, markersize='14', color = "blue")
 
 '''plt.errorbar(500/32, j_sc_5, fmt = "s", markersize='16')
 plt.errorbar(1100/32, j_sc, fmt = "d", markersize='16')
@@ -493,16 +496,16 @@ print("\n\nFolgende Werte erhalten wir für die Wirkungsgrade:\n", "Wirkungsgrad
 
 #Plot
 plt.errorbar(c1_11mV["voltage / V"], c1_11mV["current / A"], xerr = U_err, yerr = I_err,\
-            linewidth = 1, fmt = ".")
+            linewidth = 0.5, fmt = ".")
 plt.errorbar(r68_s2["voltage / V"], r68_s2["current / A"], xerr = U_err, yerr = I_err,\
-            linewidth = 1, fmt = ".")
+            linewidth = 0.5, fmt = ".")
 plt.errorbar(r68_s3["voltage / V"], r68_s3["current / A"], xerr = U_err, yerr = I_err,\
-            linewidth = 1, fmt = ".")
+            linewidth = 0.5, fmt = ".")
 plt.errorbar(r73_s2["voltage / V"], r73_s2["current / A"], xerr = U_err, yerr = I_err,\
-            linewidth = 1, fmt = ".")
+            linewidth = 0.5, fmt = ".")
 
 plt.errorbar(c4_11verb["voltage / V"][50:219], c4_11verb["current / A"][50:219], xerr = U_err, yerr = I_err,\
-            linewidth = 1, fmt = ".")
+            linewidth = 0.5, fmt = ".")
 
 plt.errorbar(U_MPP_1, I_MPP_1, fmt = "d", color = "black")                  #MPP plot
 plt.errorbar(U_MPP_2, I_MPP_2, fmt = "d", color = "black")
@@ -524,13 +527,13 @@ plt.clf()
 
 #Verschattung
 plt.errorbar(c1_11mV["voltage / V"], c1_11mV["current / A"], xerr = U_err, yerr = I_err,\
-            linewidth = 1, fmt = ".")
+            linewidth = 0.5, fmt = ".")
 plt.errorbar(c3_v1_11["voltage / V"], c3_v1_11["current / A"], xerr = U_err, yerr = I_err,\
-            linewidth = 1, fmt = ".")
+            linewidth = 0.5, fmt = ".")
 plt.errorbar(c3_v2_11["voltage / V"], c3_v2_11["current / A"], xerr = U_err, yerr = I_err,\
-            linewidth = 1, fmt = ".")
+            linewidth = 0.5, fmt = ".")
 plt.errorbar(c3_v3_11["voltage / V"], c3_v3_11["current / A"], xerr = U_err, yerr = I_err,\
-            linewidth = 1, fmt = ".")
+            linewidth = 0.5, fmt = ".")
 
 
 plt.title('U-I characteristics for different shadings', fontsize = 15)
@@ -553,7 +556,7 @@ plt.title("Temperature dependence of $U_{OC}$", fontsize = 18)
 
 plt.errorbar(np.linspace(27, 55, 1000), lin(np.linspace(27, 55, 1000), params[0], params[1], params[2]), color = "black")
 plt.errorbar(Leerlaufspannung["T[C]"], Leerlaufspannung["U_L[mV]"], xerr=T_err, yerr=U_L_err,\
-fmt = "x", linewidth = 2, capsize=3, markersize='12', color = "blue")
+fmt = "x", linewidth = 0.5, capsize=3, markersize='12', color = "blue")
 plt.xlabel('T[K]' , fontsize = 14)
 plt.ylabel('$U_{OC}$[mV]', fontsize = 14)
 plt.legend(["linear fit", "data"])
@@ -585,10 +588,10 @@ ax2.set_ylabel(r'$I [\mu A$]', fontsize = 13, color=color)  # we already handled
 ax2.tick_params(axis='y', labelcolor=color)
 
 ax1.errorbar(Kippung["Winkel[rad]"], Kippung["I_K,ano[mA]"], xerr = theta_err, yerr = I_err,\
-            linewidth = 2, color = "blue", capsize=3, fmt = "x")
+            linewidth = 0.5, color = "blue", capsize=3, fmt = "x")
 ax1.errorbar(np.linspace(0, 95, 1000), cos(np.linspace(0, 95, 1000), params_ao[0], params_ao[1]), color = "black", linestyle = "--")
 ax2.errorbar(Kippung["Winkel[rad]"], Kippung["I_K,o[yA]"], xerr = theta_err, yerr = I_err,\
-            linewidth = 2, color = "green", capsize=3, fmt = "x")
+            linewidth = 0.5, color = "green", capsize=3, fmt = "x")
 ax2.errorbar(np.linspace(0, 90, 1000), cos(np.linspace(0, 90, 1000), params_o[0], params_o[1]), color = "black", linestyle = "-.")
 
 ax1.legend(['data non-organic', "fit cos"], loc = 3)
