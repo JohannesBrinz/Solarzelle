@@ -111,7 +111,7 @@ plt.savefig('Plots/Dunkel_Si.png', dpi=300)
 plt.clf()
 
 
-#Plot Characteristicsn dunkel
+#Plot Characteristics dunkel
 Ao1 = 0.06
 Ao2 =  25
 Aa = 26
@@ -201,7 +201,7 @@ for i in range(570, 770):
         j = i
 I_MPP = a_an_11mV["current / A"][j]
 U_MPP = a_an_11mV["voltage / V"][j]
-FF = -P[j]/U_OC*j_sc*Aa
+FF = -P[j]/(U_OC*j_sc*Aa)
 p_ein = 100*11/33.2
 Wirkungsgrad = (P[j]*1e3/Aa)/p_ein            #sollte 0.22 sein S.10
 
@@ -229,6 +229,7 @@ plt.savefig('Plots/Hell_Si.png', dpi=300)
 plt.clf()
 
 
+
 #_______B____________
 
 
@@ -254,6 +255,36 @@ j_sc_20 = b_20["current / A"][570]/Aa
 U_OC_32 = U1_32 + (U2_32-U1_32) * 0.33
 j_sc_32 = b_sonne["current / A"][570]/Aa
 
+#Finde I_MPP für verschiedene Beleuchtungen
+max = 0
+j = 0
+P = b_5["voltage / V"]*(-b_5["current / A"])
+for i in range(530, 760):
+    if P[i] > max:
+        max = P[i]
+        j = i
+I_MPP_5 = b_5["current / A"][j]
+U_MPP_5 = b_5["voltage / V"][j]
+
+max = 0
+j = 0
+P = -b_20["voltage / V"]*b_20["current / A"]
+for i in range(530, 760):
+    if P[i] > max:
+        max = P[i]
+        j = i
+I_MPP_20 = b_20["current / A"][j]
+U_MPP_20 = b_20["voltage / V"][j]
+
+max = 0
+j = 0
+P = -b_sonne["voltage / V"]*b_sonne["current / A"]
+for i in range(530, 760):
+    if P[i] > max:
+        max = P[i]
+        j = i
+I_MPP_32 = b_sonne["current / A"][j]
+U_MPP_32 = b_sonne["voltage / V"][j]
 
 #Plot Si Intensitäten
 plt.errorbar(b_5["voltage / V"][530:900], b_5["current / A"][530:900], xerr = U_err, yerr = I_err,\
@@ -264,8 +295,12 @@ plt.errorbar(b_20["voltage / V"][530:900], b_20["current / A"][530:900], xerr = 
             linewidth = 2, capsize=3) #0.6 Sonnen
 plt.errorbar(b_sonne["voltage / V"][530:900], b_sonne["current / A"][530:900], xerr = U_err, yerr = I_err,\
             linewidth = 2, capsize=3) #Sonne
+plt.errorbar(U_MPP_5, I_MPP_5, fmt = "d", color = "black")
+plt.errorbar(U_MPP, I_MPP, fmt = "d", color = "black")
+plt.errorbar(U_MPP_20, I_MPP_20, fmt = "d", color = "black")
+plt.errorbar(U_MPP_32, I_MPP_32, fmt = "d", color = "black")
 
-plt.title('U-I characteristics Si illuminated', fontsize = 15)
+plt.title('U-I characteristics Si different illumination', fontsize = 15)
 '''plt.text( 0.5, -0.2, "$U_{Oc,5mV} = $" + str(round(U_OC_5, 3)) + " V", fontsize = 12)   #U_OC
 plt.text( 0.5, -0.3, "$j_{Sc,5mV} = $" + str(round(j_sc_5*1e3, 3)) + r"$\frac{mA}{cm^2}$", fontsize = 12)   #j_sc
 plt.text( 0.5, -0.4, "$U_{Oc, 11mV} = $" + str(round(U_OC, 3)) + " V", fontsize = 12)   #U_OC
@@ -339,7 +374,7 @@ U2_1 = c1_11mV["voltage / V"][350]
 
 
 U_OC_1 = U1_1 + (U2_1-U1_1) * 0.5           #lineare Interpolation U_OC
-j_sc_1 = c1_11mV["current / A"][150]/Aa
+j_sc_1 = c1_11mV["current / A"][150]/Aa*6
 P_1 = c1_11mV["voltage / V"]*(-c1_11mV["current / A"])
 
 #Finde I_MPP
@@ -351,7 +386,7 @@ for i in range(150, 349):
         j_1 = i
 I_MPP_1 = c1_11mV["current / A"][j_1]
 U_MPP_1 = c1_11mV["voltage / V"][j_1]
-FF_1 = -P_1[j_1]/U_OC_1*j_sc_1*Aa*6
+FF_1 = -P_1[j_1]/(U_OC_1*c1_11mV["current / A"][80])
 p_ein = 100*11/33.2
 Wirkungsgrad_1 = (P_1[j_1]*1e3/(Aa*6))/p_ein
 
@@ -362,7 +397,7 @@ U1_2 = r68_s2["voltage / V"][349]
 U2_2 = r68_s2["voltage / V"][350]
 
 U_OC_2 = U1_2 + (U2_2-U1_2) * 0.5           #lineare Interpolation U_OC
-j_sc_2 = r68_s2["current / A"][50]/Aa*6
+j_sc_2 = r68_s2["current / A"][80]/(Aa*6)
 P_2 = r68_s2["voltage / V"]*(-r68_s2["current / A"])
 
 #Finde I_MPP
@@ -374,7 +409,7 @@ for i in range(150, 349):
         j_2 = i
 I_MPP_2 = r68_s2["current / A"][j_2]
 U_MPP_2 = r68_s2["voltage / V"][j_2]
-FF_2 = -P_2[j_2]/U_OC_2*j_sc_2*Aa*6
+FF_2 = -P_2[j_2]/(U_OC_2*j_sc_2*Aa*6)
 p_ein = 100*11/33.2
 Wirkungsgrad_2 = (P_2[j_2]*1e3/(Aa*6))/p_ein
 
@@ -385,7 +420,7 @@ U1_3 = r68_s3["voltage / V"][344]
 U2_3 = r68_s3["voltage / V"][345]
 
 U_OC_3 = U1_3 + (U2_3-U1_3) * 0.5           #lineare Interpolation U_OC
-j_sc_3 = r68_s3["current / A"][50]/Aa*6
+j_sc_3 = r68_s3["current / A"][80]/(Aa*6)
 P_3 = r68_s3["voltage / V"]*(-r68_s3["current / A"])
 
 #Finde I_MPP
@@ -397,7 +432,7 @@ for i in range(150, 344):
         j_3 = i
 I_MPP_3 = r68_s3["current / A"][j_3]
 U_MPP_3 = r68_s3["voltage / V"][j_3]
-FF_3 = -P_3[j_3]/U_OC_3*j_sc_3*Aa*6
+FF_3 = -P_3[j_3]/(U_OC_3*j_sc_3*Aa*6)
 p_ein = 100*11/33.2
 Wirkungsgrad_3 = (P_3[j_3]*1e3/(Aa*6))/p_ein
 
@@ -408,7 +443,7 @@ U1_4 = r73_s2["voltage / V"][339]
 U2_4 = r73_s2["voltage / V"][340]
 
 U_OC_4 = U1_4 + (U2_4-U1_4) * 0.5           #lineare Interpolation U_OC
-j_sc_4 = r73_s2["current / A"][150]/Aa*6
+j_sc_4 = r73_s2["current / A"][150]/(Aa*6)
 P_4 = r73_s2["voltage / V"]*(-r73_s2["current / A"])
 
 #Finde I_MPP
@@ -420,7 +455,7 @@ for i in range(150, 339):
         j_4 = i
 I_MPP_4 = r73_s2["current / A"][j_4]
 U_MPP_4 = r73_s2["voltage / V"][j_4]
-FF_4 = -P_4[j_4]/U_OC_4*j_sc_4*Aa*6
+FF_4 = -P_4[j_4]/(U_OC_4*j_sc_4*Aa*6)
 p_ein = 100*11/33.2
 Wirkungsgrad_4 = (P_4[j_4]*1e3/(Aa*6))/p_ein
 
@@ -431,7 +466,7 @@ U1_Verb = c4_11verb["voltage / V"][218]
 U2_Verb = c4_11verb["voltage / V"][219]
 
 U_OC_Verb = U1_Verb + (U2_Verb-U1_Verb) * 0.5           #lineare Interpolation U_OC
-j_sc_Verb = c4_11verb["current / A"][50]/Aa*12
+j_sc_Verb = c4_11verb["current / A"][50]/(Aa*12)
 P_Verb = c4_11verb["voltage / V"]*(-c4_11verb["current / A"])
 
 #Finde I_MPP
@@ -443,7 +478,7 @@ for i in range(100, 218):
         j_Verb = i
 I_MPP_Verb = c4_11verb["current / A"][j_Verb]
 U_MPP_Verb = c4_11verb["voltage / V"][j_Verb]
-FF_Verb = -P_Verb[j_Verb]/U_OC_Verb*j_sc_Verb*Aa*12
+FF_Verb = -P_Verb[j_Verb]/(U_OC_Verb*j_sc_Verb*Aa*12)
 p_ein = 100*11/33.2
 Wirkungsgrad_Verb = (P_Verb[j_Verb]*1e3/(Aa*12))/p_ein
 
@@ -451,8 +486,8 @@ print("\n\n\nFolgende Werte erhalten wir für die Kurzschlussströme:\n", "j_1: 
 "\n j_4: ", j_sc_4, "\nj_Verb: ", j_sc_Verb)
 print("\n\nFolgende Werte erhalten wir für die Leerlaufspannungen:\n", "U_1: ", U_OC_1, "\n U_2: ", U_OC_2, "\n U_3: ", U_OC_3, \
 "\n U_4: ", U_OC_4, "\nU_Verb: ", U_OC_Verb)
-print("\n\nFolgende Werte erhalten wir für die Füllfaktoren:\n", "FF_1: ", FF_1, "\n FF_2: ", j_sc_2, "\n FF_3: ", j_sc_3, \
-"\n FF_4: ", j_sc_4, "\nFF_Verb: ", j_sc_Verb)
+print("\n\nFolgende Werte erhalten wir für die Füllfaktoren:\n", "FF_1: ", FF_1, "\n FF_2: ", FF_2, "\n FF_3: ", FF_3, \
+"\n FF_4: ", FF_4, "\nFF_Verb: ", FF_Verb)
 print("\n\nFolgende Werte erhalten wir für die Wirkungsgrade:\n", "Wirkungsgrad_1: ", Wirkungsgrad_1, "\n Wirkungsgrad_2: ", Wirkungsgrad_2, "\n Wirkungsgrad_3: ", Wirkungsgrad_3, \
 "\n Wirkungsgrad_4: ", Wirkungsgrad_4, "\nWirkungsgrad_Verb: ", Wirkungsgrad_Verb, "\n\n\n")
 
@@ -468,6 +503,13 @@ plt.errorbar(r73_s2["voltage / V"], r73_s2["current / A"], xerr = U_err, yerr = 
 
 plt.errorbar(c4_11verb["voltage / V"][50:219], c4_11verb["current / A"][50:219], xerr = U_err, yerr = I_err,\
             linewidth = 1, fmt = ".")
+
+plt.errorbar(U_MPP_1, I_MPP_1, fmt = "d", color = "black")                  #MPP plot
+plt.errorbar(U_MPP_2, I_MPP_2, fmt = "d", color = "black")
+plt.errorbar(U_MPP_3, I_MPP_3, fmt = "d", color = "black")
+plt.errorbar(U_MPP_4, I_MPP_4, fmt = "d", color = "black")
+plt.errorbar(U_MPP_Verb, I_MPP_Verb, fmt = "d", color = "black")
+
 
 plt.title('U-I characteristics for different wirings', fontsize = 15)
 plt.xlabel('U [V]' , fontsize = 13)
